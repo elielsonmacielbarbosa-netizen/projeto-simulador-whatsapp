@@ -1,0 +1,18 @@
+# Excluir pastas virtuais
+.venv/
+.venv-39/
+
+# Excluir o banco de dados
+db.sqlite3
+
+# Excluir arquivos de configuração do IDE
+.idea/
+
+# Excluir arquivos de mídia (imagens, etc.)
+media/
+
+# Excluir arquivos de configuração que você adicionou
+.env.py
+Procfile.py
+requirements.txt.py
+runtime.txt.py

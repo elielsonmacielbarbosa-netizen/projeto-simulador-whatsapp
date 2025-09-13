@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulador de Chat - WhatsApp</title>
+    {% load static %}
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .chat-container {
+            display: flex;
+            width: 90%;
+            height: 90%;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar {
+            width: 30%;
+            border-right: 1px solid #e2e2e2;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1c1e21;
+            margin-bottom: 20px;
+        }
+
+        .chat-list-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .chat-list-item:hover {
+            background-color: #f0f2f5;
+        }
+
+        .chat-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #128c7e;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 15px;
+        }
+
+        /* Novo estilo para a imagem de perfil do grupo */
+        .chat-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .chat-info {
+            flex-grow: 1;
+        }
+
+        .chat-name {
+            font-weight: 600;
+            color: #1c1e21;
+        }
+
+        .chat-last-message {
+            font-size: 14px;
+            color: #65676b;
+        }
+
+        .main-chat {
+            width: 70%;
+            display: flex;
+            flex-direction: column;
+            background-color: #f7f9fb;
+        }
+
+        .chat-header {
+            padding: 15px;
+            border-bottom: 1px solid #e2e2e2;
+            background-color: #ededed;
+            font-weight: bold;
+            color: #1c1e21;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-9114-60d70f03c20c.png');
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            max-width: 60%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .incoming {
+            background-color: #fff;
+            color: #000;
+            align-self: flex-start;
+        }
+
+        .outgoing {
+            background-color: #dcf8c6;
+            color: #000;
+            align-self: flex-end;
+        }
+
+        .chat-input {
+            padding: 10px;
+            background-color: #ededed;
+            display: flex;
+            align-items: center;
+        }
+
+        .chat-input input[type="text"] {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            margin-right: 10px;
+            outline: none;
+        }
+
+        .chat-input input[type="file"] {
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .chat-input button {
+            background-color: #075e54;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        .encaminhar-link {
+            font-size: 12px;
+            color: #65676b;
+            text-decoration: none;
+            margin-left: 10px;
+            float: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="sidebar">
+            <div class="sidebar-header">Simulador de Chat</div>
+            <div class="chat-list">
+                {% for grupo in grupos %}
+                <a href="{% url 'chat_do_grupo' grupo.id %}" style="text-decoration: none; color: inherit;">
+                    <div class="chat-list-item">
+                        <div class="chat-avatar">
+                            {% if grupo.imagem_perfil %}
+                                <img src="{{ grupo.imagem_perfil.url }}" alt="{{ grupo.nome }}">
+                            {% else %}
+                                {{ grupo.nome|slice:":1" }}
+                            {% endif %}
+                        </div>
+                        <div class="chat-info">
+                            <div class="chat-name">{{ grupo.nome }}</div>
+                            <div class="chat-last-message">...</div>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="main-chat">
+            {% if grupo_ativo %}
+            <div class="chat-header">{{ grupo_ativo.nome }}</div>
+            <div class="chat-messages">
+                {% for mensagem in mensagens %}
+                <div class="message {% if mensagem.é_resposta %}outgoing{% else %}incoming{% endif %}" data-message-id="{{ mensagem.id }}">
+                    {{ mensagem.texto }} <br> <small>{{ mensagem.autor_e_hora }}, {{ mensagem.data_envio|date:"H:i" }}</small>
+                    {% if mensagem.imagem %}
+                    <img src="{{ mensagem.imagem.url }}" style="max-width: 100%; border-radius: 8px; margin-top: 5px;">
+                    {% endif %}
+                    <a href="{% url 'encaminhar_mensagem' mensagem.id %}" class="encaminhar-link">Encaminhar</a>
+                </div>
+                {% endfor %}
+            </div>
+            <form id="chat-form" method="post" enctype="multipart/form-data" class="chat-input">
+                {% csrf_token %}
+                <input type="file" name="imagem" accept="image/*">
+                <input type="text" name="texto_mensagem" placeholder="Digite sua mensagem..." id="texto_mensagem">
+                <input type="hidden" name="grupo_id" value="{{ grupo_ativo.id }}">
+                <button type="submit">Enviar</button>
+            </form>
+            {% else %}
+            <div class="chat-header">Selecione um grupo</div>
+            <div class="chat-messages">
+                <p style="text-align: center; color: #65676b;">Clique em um grupo para visualizar as mensagens.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Função para tocar o som de notificação
+        function playNotificationSound() {
+            // A URL do som foi corrigida para a extensão .wav
+            const audio = new Audio("{% static 'sounds/notification.mp3.wav' %}");
+            audio.play();
+        }
+
+        // Função para adicionar uma mensagem à interface
+        function addMessageToChat(mensagem) {
+            const chatMessages = document.querySelector('.chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', mensagem.é_resposta ? 'outgoing' : 'incoming');
+
+            // Adicionando o atributo data-message-id para a identificação correta
+            messageDiv.setAttribute('data-message-id', mensagem.id);
+
+            let content = `${mensagem.texto} <br> <small>${mensagem.autor_e_hora}, ${mensagem.data_envio}</small>`;
+            if (mensagem.imagem_url) {
+                content += `<img src="${mensagem.imagem_url}" style="max-width: 100%; border-radius: 8px; margin-top: 5px;">`;
+            }
+            content += `<a href="/encaminhar/${mensagem.id}/" class="encaminhar-link">Encaminhar</a>`;
+
+            messageDiv.innerHTML = content;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll para o final
+        }
+
+        // Função para verificar novas mensagens a cada 3 segundos
+        function checkForNewMessages() {
+            const grupoAtivoId = "{{ grupo_ativo.id }}";
+            if (!grupoAtivoId) {
+                return;
+            }
+
+            const chatMessages = document.querySelector('.chat-messages');
+            const ultimaMensagem = chatMessages.lastElementChild;
+            const ultimaMensagemId = ultimaMensagem ? ultimaMensagem.dataset.messageId : null;
+
+            fetch(`/verificar_mensagens/${grupoAtivoId}/?ultima_mensagem_id=${ultimaMensagemId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.mensagens.length > 0) {
+                        playNotificationSound();
+                        data.mensagens.forEach(mensagem => {
+                            addMessageToChat(mensagem);
+                        });
+                    }
+                });
+        }
+
+        // Função para enviar mensagem via AJAX
+        document.getElementById('chat-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Impede o envio tradicional do formulário e o recarregamento da página
+
+            const form = event.target;
+            const textoMensagem = document.getElementById('texto_mensagem').value;
+            const grupoId = form.querySelector('input[name="grupo_id"]').value;
+
+            // Exibe a mensagem imediatamente no chat (simulando o envio)
+            const chatMessages = document.querySelector('.chat-messages');
+            const tempMessageDiv = document.createElement('div');
+            // Suas mensagens (é_resposta=True) devem ser 'outgoing' no HTML (lado direito)
+            tempMessageDiv.classList.add('message', 'outgoing');
+            tempMessageDiv.innerHTML = `${textoMensagem} <br> <small>Telemonitoramento, agora</small>`;
+            chatMessages.appendChild(tempMessageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Limpa o campo de texto
+            document.getElementById('texto_mensagem').value = '';
+
+            // Envia a mensagem para o servidor via fetch
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': form.querySelector('input[name="csrfmiddlewaretoken"]').value,
+                },
+                body: JSON.stringify({
+                    texto_mensagem: textoMensagem,
+                    grupo_id: grupoId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    console.log("Mensagem enviada com sucesso!");
+                }
+            })
+            .catch(error => console.error('Erro ao enviar mensagem:', error));
+        });
+
+        // Inicia a verificação de novas mensagens em um intervalo
+        setInterval(checkForNewMessages, 3000); // Verifica a cada 3 segundos
+    </script>
+</body>
+</html>
