@@ -22,7 +22,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = False
 
 # Ajuste a URL do ALLOWED_HOSTS para o seu domínio no Heroku.
-ALLOWED_HOSTS = ['treinamentoppcv.herokuapp.com', '127.0.0.1']
+ALLOWED_HOSTS = ['treinamentoppcv-cb92a58a465a.herokuapp.com', '127.0.0.1']
 
 # Carrega a chave da API do Google
 GOOGLE_API_KEY = os.getenv('API_KEY')
