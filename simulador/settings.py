@@ -21,6 +21,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+# Ajuste a URL do ALLOWED_HOSTS para o seu domínio no Heroku.
 ALLOWED_HOSTS = ['treinamentoppcv.herokuapp.com', '127.0.0.1']
 
 # Carrega a chave da API do Google
@@ -103,10 +104,15 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
-)
+
+# Adicione esta linha para configurar o diretório onde o Heroku vai procurar os arquivos estáticos.
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Especifique os diretórios onde o Django deve procurar arquivos estáticos durante o desenvolvimento.
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
 # Configuração do WhiteNoise para comprimir e cachear arquivos estáticos
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
