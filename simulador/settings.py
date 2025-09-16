@@ -135,3 +135,4 @@ Q_CLUSTER = {
     'timeout': 90,
     'retry': 120,
     'ORM': 'default',
+} # <--- Esta chave de fechamento provavelmente está faltando
