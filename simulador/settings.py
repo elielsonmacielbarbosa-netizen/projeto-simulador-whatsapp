@@ -72,9 +72,17 @@ WSGI_APPLICATION = 'simulador.wsgi.application'
 
 # Database
 # Heroku usa PostgreSQL, então configuramos para usar a variável de ambiente DATABASE_URL
-DATABASES = {
-    'default': dj_database_url.config(conn_max_age=600)
-}
+if 'DATABASE_URL' in os.environ:
+    DATABASES = {
+        'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -127,4 +135,3 @@ Q_CLUSTER = {
     'timeout': 90,
     'retry': 120,
     'ORM': 'default',
-}
